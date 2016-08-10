@@ -28,9 +28,12 @@ void setup() {
 void loop() {
   for (int i=0; i<=255; i++){
     color = Wheel(i);
+    
+    // :
     pixels.setPixelColor(1, color);
     pixels.setPixelColor(15, color);
-  
+
+    // )
     pixels.setPixelColor(5, color);
     pixels.setPixelColor(6, color);
     pixels.setPixelColor(7, color);
@@ -38,10 +41,12 @@ void loop() {
     pixels.setPixelColor(9, color);
     pixels.setPixelColor(10, color);
     pixels.setPixelColor(11, color);
-    
+
+    // :
     pixels.setPixelColor(17, color);
     pixels.setPixelColor(31, color);
-  
+
+    // )
     pixels.setPixelColor(21, color);
     pixels.setPixelColor(22, color);
     pixels.setPixelColor(23, color);
