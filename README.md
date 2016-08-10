@@ -1,4 +1,4 @@
-# NeoPixel-Goggle
+# NeoPixel Goggles
 Customized light effects for my goggles from Adafruit
 https://www.adafruit.com/products/2221
 
