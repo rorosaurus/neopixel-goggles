@@ -11,10 +11,7 @@
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(32, PIN);
 
-uint8_t  mode   = 0, // Current animation effect
-         offset = 0; // Position of spinny eyes
-uint32_t color  = 0xFFE700;
-uint32_t prevTime;
+uint32_t color  = 0x000000;
 
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -22,7 +19,6 @@ void setup() {
 #endif
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
-  prevTime = millis();
 }
 
 void loop() {
@@ -107,17 +103,4 @@ uint32_t getRGBfromHue(int hue) {
   int blue = constrain((int)255*b,0,255);
 
   return pixels.Color(red, green, blue);
-}
-
-uint32_t Wheel(byte WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
-    return pixels.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  }
-  if(WheelPos < 170) {
-    WheelPos -= 85;
-    return pixels.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  WheelPos -= 170;
-  return pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
