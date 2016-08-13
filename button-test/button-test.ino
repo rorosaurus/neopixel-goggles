@@ -5,7 +5,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
- #include <avr/power.h>
+#include <avr/power.h>
 #endif
 
 #define LED_PIN 0
@@ -19,9 +19,11 @@ uint32_t color  = 0x000000;
 bool oldState = HIGH;
 int degree = 0;
 
+int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
+
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
-  if(F_CPU == 16000000) clock_prescale_set(clock_div_1);
+  if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif
   pinMode(BUTTON1_PIN, INPUT_PULLUP);
   pixels.begin();
@@ -30,49 +32,29 @@ void setup() {
 
 void loop() {
   // Get current button state.
-  bool newState = digitalRead(BUTTON1_PIN);
+  //bool newState = digitalRead(BUTTON1_PIN);
+  bool newState = LOW;
 
   // Check if state changed from high to low (button press).
   if (newState == LOW) {
     color = getRGBfromHue(degree);
-    
-    // :
-    pixels.setPixelColor(1, color);
-    pixels.setPixelColor(15, color);
 
-    // )
-    pixels.setPixelColor(5, color);
-    pixels.setPixelColor(6, color);
-    pixels.setPixelColor(7, color);
-    pixels.setPixelColor(8, color);
-    pixels.setPixelColor(9, color);
-    pixels.setPixelColor(10, color);
-    pixels.setPixelColor(11, color);
+    for (int i = 0; i < 18; i++) {
+      pixels.setPixelColor(smileyLEDS[i], color);
+    }
 
-    // :
-    pixels.setPixelColor(17, color);
-    pixels.setPixelColor(31, color);
-
-    // )
-    pixels.setPixelColor(21, color);
-    pixels.setPixelColor(22, color);
-    pixels.setPixelColor(23, color);
-    pixels.setPixelColor(24, color);
-    pixels.setPixelColor(25, color);
-    pixels.setPixelColor(26, color);
-    pixels.setPixelColor(27, color);
-    
     pixels.show();
 
-    delay(50);
+    delay(10);
+
     degree++;
-    if(degree >= 360) degree = 0;
+    if (degree >= 360) degree = 0;
   }
-  
-  else{
+
+  else {
     color = 0x000000;
 
-    for (int i=0; i<32;i++){
+    for (int i = 0; i < 32; i++) {
       pixels.setPixelColor(i, color);
     }
 
@@ -86,8 +68,8 @@ void loop() {
 // I basically implemented wikipedia: https://en.wikipedia.org/wiki/HSL_and_HSV#/media/File:HSV-RGB-comparison.svg
 uint32_t getRGBfromHue(int hue) {
   double r, g, b = 0;
-  int i=(int)floor(hue/60.0); // which section we're in
-  double f = hue/60.0 - i; // how far we are through this section
+  int i = (int)floor(hue / 60.0); // which section we're in
+  double f = hue / 60.0 - i; // how far we are through this section
 
   switch (i) {
     case 0:
@@ -96,18 +78,18 @@ uint32_t getRGBfromHue(int hue) {
       b = 0;
       break;
     case 1:
-      r = 1-f;
+      r = 1 - f;
       g = 1;
       b = 0;
       break;
-    case 2: 
+    case 2:
       r = 0;
       g = 1;
       b = f;
       break;
     case 3:
       r = 0;
-      g = 1-f;
+      g = 1 - f;
       b = 1;
       break;
     case 4:
@@ -118,15 +100,15 @@ uint32_t getRGBfromHue(int hue) {
     case 5:
       r = 1;
       g = 0;
-      b = 1-f;
+      b = 1 - f;
       break;
   }
 
   //set each component to a integer value between 0 and 255
   // todo: i think we can remove the constrain() bits and changing r,g,b to ints
-  int red = constrain((int)255*r,0,255);
-  int green = constrain((int)255*g,0,255);
-  int blue = constrain((int)255*b,0,255);
+  int red = constrain((int)255 * r, 0, 255);
+  int green = constrain((int)255 * g, 0, 255);
+  int blue = constrain((int)255 * b, 0, 255);
 
   return pixels.Color(red, green, blue);
 }
