@@ -16,7 +16,8 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
 uint32_t color  = 0x000000;
-bool oldState = HIGH;
+bool button2OldState = HIGH;
+bool button1OldState = HIGH;
 int degree = 0;
 
 int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
@@ -26,13 +27,15 @@ void setup() {
   if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif
   pinMode(BUTTON1_PIN, INPUT_PULLUP);
+  pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
 }
 
 void loop() {
   // Get current button state.
-  //bool newState = digitalRead(BUTTON1_PIN);
+  //bool button1NewState = digitalRead(BUTTON1_PIN);
+  //bool button2NewState = digitalRead(BUTTON2_PIN);
   bool newState = LOW;
 
   // Check if state changed from high to low (button press).
@@ -52,16 +55,17 @@ void loop() {
   }
 
   else {
-    color = 0x000000;
+    clearLEDS();
+    delay(50);
+  }
+}
 
-    for (int i = 0; i < 32; i++) {
-      pixels.setPixelColor(i, color);
+void clearLEDS() {
+  for (int i = 0; i < LED_LENGTH; i++) {
+      pixels.setPixelColor(i, 0x000000);
     }
 
     pixels.show();
-
-    delay(50);
-  }
 }
 
 // takes int 0-360 and translates from HSV to RGB
@@ -103,12 +107,6 @@ uint32_t getRGBfromHue(int hue) {
       b = 1 - f;
       break;
   }
-
-  //set each component to a integer value between 0 and 255
-  // todo: i think we can remove the constrain() bits and changing r,g,b to ints
-  int red = constrain((int)255 * r, 0, 255);
-  int green = constrain((int)255 * g, 0, 255);
-  int blue = constrain((int)255 * b, 0, 255);
-
-  return pixels.Color(red, green, blue);
+  
+  return pixels.Color(r*255, g*255, b*255);
 }
