@@ -98,6 +98,7 @@ uint32_t getRGBfromHue(int hue) {
   }
 
   //set each component to a integer value between 0 and 255
+  // todo: i think we can remove the constrain() bits and changing r,g,b to ints
   int red = constrain((int)255*r,0,255);
   int green = constrain((int)255*g,0,255);
   int blue = constrain((int)255*b,0,255);
