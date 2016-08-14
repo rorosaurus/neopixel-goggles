@@ -22,7 +22,7 @@ int hue = 0;
 
 bool inBaseMode = true;
 int baseMode = 0;
-int utilMode = -1;
+int utilMode = 0;
 
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -32,6 +32,7 @@ void setup() {
   pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
+  randomSeed(millis());
 }
 
 void loop() {
@@ -42,12 +43,38 @@ void loop() {
   bool button1NewState = digitalRead(BUTTON1_PIN);
   bool button2NewState = digitalRead(BUTTON2_PIN);
 
-  // Check if state changed from high to low (button press)
+  // State management
+  // Check if state changed from high to low (button press) to control util mode
   if (button1NewState == LOW && button1OldState == HIGH) {
-    setSmileyPixels(getRainbow());
+    if (inBaseMode) { // switch to utility mode
+      inBaseMode = false;
+      utilMode = 0;
+    }
+    else {
+      utilMode++;
+      if (utilMode >= 3) utilMode = 0;
+    }
+    // 0 = yellow smiley
+    // 1 = winking smiley
+    // 2 = flashlight
+    //setSmileyPixels(getRainbow());
   }
-  else if (button2NewState == LOW) {
-    setSmileyPixels(0xFFFF00);
+  // Control base mode
+  else if (button2NewState == LOW && button2OldState == HIGH) {
+    if (!inBaseMode) {
+      inBaseMode = true;
+      baseMode = random(5);
+    }
+    else {
+      baseMode++;
+      if (baseMode >= 5) baseMode = 0;
+    }
+    // 0 = rainbow cycle
+    // 1 = random flashes
+    // 2 = infinity cycle
+    // 3 = ????
+    // 4 = ????
+    //setSmileyPixels(0xFFFF00);
   }
   else {
     setAllPixels(getRainbow());
