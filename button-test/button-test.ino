@@ -10,7 +10,7 @@
 
 #define LED_PIN 0
 #define LED_LENGTH 32
-#define BUTTON1_PIN 1
+#define BUTTON1_PIN 3
 #define BUTTON2_PIN 2
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
@@ -32,32 +32,30 @@ void setup() {
 }
 
 void loop() {
+  setAllLEDS(0x000000);
   // Get current button state.
   bool button1NewState = digitalRead(BUTTON1_PIN);
   bool button2NewState = digitalRead(BUTTON2_PIN);
   
   // Check if state changed from high to low (button press).
   if (button1NewState == LOW) {
-    uint32_t color = getRGBfromHue(degree);
-
+    uint32_t color = 0xFF0000;
     for (int i = 0; i < 18; i++) {
       pixels.setPixelColor(smileyLEDS[i], color);
     }
-
-    pixels.show();
   }
   else if (button2NewState == LOW){
     uint32_t color = 0xFFFF00;
-
     for (int i = 0; i < 18; i++) {
       pixels.setPixelColor(smileyLEDS[i], color);
     }
-
-    pixels.show();
   }
   else {
-    setAllLEDS(0x000000);
+    pixels.setPixelColor(0, 0xFFFFFF);
+    pixels.setPixelColor(16, 0xFFFFFF);
   }
+  
+  pixels.show();
 
   // rotate through our rainbow always
   degree++;
