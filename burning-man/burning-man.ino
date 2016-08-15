@@ -18,7 +18,10 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 //bool button1OldState = HIGH;
 bool button2OldState = HIGH;
 
+// always cycle through the rainbow
 int hue = 0;
+// keep track of each mode's progress
+int modeCounter = 0;
 
 bool flashlightMode = false;
 int mode = 0;
@@ -51,7 +54,10 @@ void loop() {
   }
   else if (button2NewState == LOW && button2OldState == HIGH) {
     flashlightMode = !flashlightMode;
+    pixels.setBrightness(85); // 1/3 brightness
   }
+
+  // do flashy light stuff
 
   // turn on the flashlight
   if (flashlightMode) {
@@ -61,8 +67,7 @@ void loop() {
 
   // else do random designs
   else {
-    pixels.setBrightness(85); // 1/3 brightness
-    setAllPixels(getRainbow(hue));
+    oppositeSpin(getRainbow(hue));
   }
 
   // Update the LEDs
@@ -79,6 +84,21 @@ void loop() {
   delay(10);
 }
 
+// each eye rotates two opposite LED patches
+void oppositeSpin(uint32_t color) {
+  if (modeCounter >= 16) modeCounter = 0;
+  for(int i=0; i<16; i++) {
+      uint32_t c = 0;
+      if(((modeCounter + i) & 7) < 2) c = color; // 3 pixels on...
+      pixels.setPixelColor(   i, c); // First eye
+      pixels.setPixelColor(31-i, c); // Second eye (flipped)
+    }
+    modeCounter++;
+    hue++;
+    delay(40);
+}
+
+// sets the smiley pixels on both eyes
 void setSmileyPixels(uint32_t color) {
   int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
   for (int i = 0; i < 18; i++) {
@@ -86,6 +106,7 @@ void setSmileyPixels(uint32_t color) {
   }
 }
 
+// sets all the LEDs on both eyes
 void setAllPixels(uint32_t color) {
   for (int i = 0; i < LED_LENGTH; i++) {
     pixels.setPixelColor(i, color);
