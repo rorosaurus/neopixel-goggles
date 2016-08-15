@@ -31,7 +31,7 @@ void setup() {
   pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
-  randomSeed(millis());
+  //randomSeed(millis());
 }
 
 void loop() {
@@ -62,7 +62,7 @@ void loop() {
   // else do random designs
   else {
     pixels.setBrightness(85); // 1/3 brightness
-    setAllPixels(getRainbow());
+    setAllPixels(getRainbow(hue));
   }
 
   // Update the LEDs
@@ -74,7 +74,7 @@ void loop() {
 
   // Rotate through our rainbow always
   hue++;
-  if (hue >= 360) hue = 0;
+  if (hue > 255) hue = 0;
 
   delay(10);
 }
@@ -92,45 +92,17 @@ void setAllPixels(uint32_t color) {
   }
 }
 
-// takes int 0-360 and translates from HSV to RGB
-// I basically implemented wikipedia: https://en.wikipedia.org/wiki/HSL_and_HSV#/media/File:HSV-RGB-comparison.svg
-uint32_t getRainbow() {
-  double r, g, b = 0;
-  int i = (int)floor(hue / 60.0); // which section we're in
-  double f = hue / 60.0 - i; // how far we are through this section
-
-  switch (i) {
-    case 0:
-      r = 1;
-      g = f;
-      b = 0;
-      break;
-    case 1:
-      r = 1 - f;
-      g = 1;
-      b = 0;
-      break;
-    case 2:
-      r = 0;
-      g = 1;
-      b = f;
-      break;
-    case 3:
-      r = 0;
-      g = 1 - f;
-      b = 1;
-      break;
-    case 4:
-      r = f;
-      g = 0;
-      b = 1;
-      break;
-    case 5:
-      r = 1;
-      g = 0;
-      b = 1 - f;
-      break;
+// Input a value 0 to 255 to get a color value.
+// this literally saves 40% of my ROM space, so... shamelessly reusing the sample code
+uint32_t getRainbow(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return pixels.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   }
-
-  return pixels.Color(r * 255, g * 255, b * 255);
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return pixels.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return pixels.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
