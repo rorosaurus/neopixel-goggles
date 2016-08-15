@@ -15,14 +15,13 @@
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
-bool button1OldState = HIGH;
+//bool button1OldState = HIGH;
 bool button2OldState = HIGH;
 
 int hue = 0;
 
-bool inBaseMode = true;
-int baseMode = 0;
-int utilMode = 0;
+bool flashlightMode = false;
+int mode = 0;
 
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -44,39 +43,25 @@ void loop() {
   bool button2NewState = digitalRead(BUTTON2_PIN);
 
   // State management
-  // Check if state changed from high to low (button press) to control util mode
-  if (button1NewState == LOW && button1OldState == HIGH) {
-    if (inBaseMode) { // switch to utility mode
-      inBaseMode = false;
-      utilMode = 0;
+  if (button1NewState == LOW) {
+    while(digitalRead(BUTTON1_PIN) == LOW) {
+      setSmileyPixels(0xFFFF00);
+      pixels.show();
     }
-    else {
-      utilMode++;
-      if (utilMode >= 3) utilMode = 0;
-    }
-    // 0 = yellow smiley
-    // 1 = winking smiley
-    // 2 = flashlight
-    //setSmileyPixels(getRainbow());
   }
-  // Control base mode
   else if (button2NewState == LOW && button2OldState == HIGH) {
-    if (!inBaseMode) {
-      inBaseMode = true;
-      baseMode = random(5);
-    }
-    else {
-      baseMode++;
-      if (baseMode >= 5) baseMode = 0;
-    }
-    // 0 = rainbow cycle
-    // 1 = random flashes
-    // 2 = infinity cycle
-    // 3 = ????
-    // 4 = ????
-    //setSmileyPixels(0xFFFF00);
+    flashlightMode = !flashlightMode;
   }
+
+  // turn on the flashlight
+  if (flashlightMode) {
+    pixels.setBrightness(255); // full brightness
+    setAllPixels(0xFFFFFF);
+  }
+
+  // else do random designs
   else {
+    pixels.setBrightness(85); // 1/3 brightness
     setAllPixels(getRainbow());
   }
 
@@ -84,7 +69,7 @@ void loop() {
   pixels.show();
 
   // Update button state variables
-  button1OldState = button1NewState;
+  //button1OldState = button1NewState;
   button2OldState = button2NewState;
 
   // Rotate through our rainbow always
