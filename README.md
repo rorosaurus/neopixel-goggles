@@ -2,6 +2,9 @@
 Customized light effects for my goggles from Adafruit
 https://www.adafruit.com/products/2221
 
+Requires Trinket drivers
+https://github.com/adafruit/Adafruit_Windows_Drivers
+
 Requires the NeoPixel library from Adafruit
 https://github.com/adafruit/Adafruit_NeoPixel
 
