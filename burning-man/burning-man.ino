@@ -24,6 +24,7 @@ int hue = 0;
 int modeCounter = 0;
 
 int mode = 0;
+uint32_t lastModeChange;
 
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -33,6 +34,7 @@ void setup() {
   pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
+  lastModeChange = millis();
   //randomSeed(millis());
 }
 
@@ -45,14 +47,21 @@ void loop() {
   bool button1NewState = digitalRead(BUTTON1_PIN);
   bool button2NewState = digitalRead(BUTTON2_PIN);
 
-  // State machine management
+  // Button and State machine management
   if (button1NewState == LOW && button1OldState == HIGH) {
     if (mode >= 0 || mode <= -3) mode = -1;
     else mode--;
+    lastModeChange = millis();
   }
   else if (button2NewState == LOW && button2OldState == HIGH) {
     if (mode < 0 || mode >= 2) mode = 0;
     else mode++;
+    lastModeChange = millis();
+  }
+  else if (mode >= 0 && (millis() > lastModeChange+5000)) {
+    if (mode < 0 || mode >= 2) mode = 0;
+    else mode++;
+    lastModeChange = millis();
   }
 
   // Flashy light stuff time!
