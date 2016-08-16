@@ -15,7 +15,7 @@
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
-//bool button1OldState = HIGH;
+bool button1OldState = HIGH;
 bool button2OldState = HIGH;
 
 // always cycle through the rainbow
@@ -23,7 +23,6 @@ int hue = 0;
 // keep track of each mode's progress
 int modeCounter = 0;
 
-bool flashlightMode = false;
 int mode = 0;
 
 void setup() {
@@ -38,43 +37,44 @@ void setup() {
 }
 
 void loop() {
-  // Initialize all LEDs to off
+  // Initialize all LEDs to off and reset brightness
   setAllPixels(0x000000);
+  pixels.setBrightness(85); // 1/3 brightness
 
-  // Get current button state.
+  // Update current button state
   bool button1NewState = digitalRead(BUTTON1_PIN);
   bool button2NewState = digitalRead(BUTTON2_PIN);
 
-  // State management
-  if (button1NewState == LOW) {
-    while(digitalRead(BUTTON1_PIN) == LOW) {
-      setSmileyPixels(0xFFFF00);
-      pixels.show();
-    }
+  // State machine management
+  if (button1NewState == LOW && button1OldState == HIGH) {
+    if (mode >= 0 || mode <= -3) mode = -1;
+    else mode--;
   }
   else if (button2NewState == LOW && button2OldState == HIGH) {
-    flashlightMode = !flashlightMode;
-    pixels.setBrightness(85); // 1/3 brightness
+    if (mode < 0 || mode >= 2) mode = 0;
+    else mode++;
   }
 
-  // do flashy light stuff
-
-  // turn on the flashlight
-  if (flashlightMode) {
-    pixels.setBrightness(255); // full brightness
-    setAllPixels(0xFFFFFF);
-  }
-
-  // else do random designs
-  else {
-    oppositeSpin(getRainbow(hue));
+  // Flashy light stuff time!
+  switch (mode) {
+    // -3: flashlight
+    case -3: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
+    // -2: winky face
+    case -2: setSmileyPixel(0x00FF00); break;
+    // -1: smiley face
+    case -1: setSmileyPixels(0xFFFF00); break;
+    // 0: uniform rainbow cycle
+    case 0: setAllPixels(getRainbow()); break;
+    // 1: opposite rainbow spinners
+    case 1: oppositeSpin(getRainbow()); break;
+    case 2: oppositeSpin(0xFF00FF); break;
   }
 
   // Update the LEDs
   pixels.show();
 
   // Update button state variables
-  //button1OldState = button1NewState;
+  button1OldState = button1NewState;
   button2OldState = button2NewState;
 
   // Rotate through our rainbow always
@@ -84,21 +84,26 @@ void loop() {
   delay(10);
 }
 
+//if (millis()%1000 > 700) {
+//    // do the wink, maybe?
+//  }
+
 // each eye rotates two opposite LED patches
 void oppositeSpin(uint32_t color) {
   if (modeCounter >= 16) modeCounter = 0;
-  for(int i=0; i<16; i++) {
-      uint32_t c = 0;
-      if(((modeCounter + i) & 7) < 2) c = color; // 3 pixels on...
-      pixels.setPixelColor(   i, c); // First eye
-      pixels.setPixelColor(31-i, c); // Second eye (flipped)
-    }
-    modeCounter++;
-    hue++;
-    delay(40);
+  for (int i = 0; i < 16; i++) {
+    uint32_t c = 0;
+    if (((modeCounter + i) & 7) < 2) c = color; // 3 pixels on
+    pixels.setPixelColor(   i, c); // First eye
+    pixels.setPixelColor(31 - i, c); // Second eye (flipped)
+  }
+  modeCounter++;
+  hue++;
+  delay(40);
 }
 
 // sets the smiley pixels on both eyes
+// todo: try making this a rainbow mix of colors instead of one?
 void setSmileyPixels(uint32_t color) {
   int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
   for (int i = 0; i < 18; i++) {
@@ -113,14 +118,15 @@ void setAllPixels(uint32_t color) {
   }
 }
 
+// todo: try invalid input.. can we save byte somewhere?
 // Input a value 0 to 255 to get a color value.
 // this literally saves 40% of my ROM space, so... shamelessly reusing the sample code
 uint32_t getRainbow(byte WheelPos) {
   WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
+  if (WheelPos < 85) {
     return pixels.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   }
-  if(WheelPos < 170) {
+  if (WheelPos < 170) {
     WheelPos -= 85;
     return pixels.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
