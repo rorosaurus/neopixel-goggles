@@ -60,13 +60,13 @@ void loop() {
     // -3: flashlight
     case -3: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
     // -2: winky face
-    case -2: setSmileyPixel(0x00FF00); break;
+    case -2: setSmileyPixels(0x00FF00); break;
     // -1: smiley face
     case -1: setSmileyPixels(0xFFFF00); break;
     // 0: uniform rainbow cycle
-    case 0: setAllPixels(getRainbow()); break;
+    case 0: setAllPixels(getRainbow(hue)); break;
     // 1: opposite rainbow spinners
-    case 1: oppositeSpin(getRainbow()); break;
+    case 1: oppositeSpin(getRainbow(hue)); break;
     case 2: oppositeSpin(0xFF00FF); break;
   }
 
