@@ -15,6 +15,8 @@
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
+int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
+
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
 
@@ -35,7 +37,7 @@ void setup() {
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
   lastModeChange = millis();
-  //randomSeed(millis());
+  randomSeed(millis());
 }
 
 void loop() {
@@ -68,10 +70,10 @@ void loop() {
   switch (mode) {
     // -3: flashlight
     case -3: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
-    // -2: winky face
-    case -2: setSmileyPixels(0x00FF00); break;
-    // -1: smiley face
-    case -1: setSmileyPixels(0xFFFF00); break;
+    // -2: winky face 0xFFD700
+    case -2: setSmileyPixels(0xFFD700); wink(); break;
+    // -1: smiley face 0xFFD700
+    case -1: setRainbowSmileyPixels(); break;
     // 0: uniform rainbow cycle
     case 0: setAllPixels(getRainbow(hue)); break;
     // 1: opposite rainbow spinners
@@ -93,10 +95,6 @@ void loop() {
   delay(10);
 }
 
-//if (millis()%1000 > 700) {
-//    // do the wink, maybe?
-//  }
-
 // each eye rotates two opposite LED patches
 void oppositeSpin(uint32_t color) {
   if (modeCounter >= 16) modeCounter = 0;
@@ -114,9 +112,22 @@ void oppositeSpin(uint32_t color) {
 // sets the smiley pixels on both eyes
 // todo: try making this a rainbow mix of colors instead of one?
 void setSmileyPixels(uint32_t color) {
-  int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
   for (int i = 0; i < 18; i++) {
     pixels.setPixelColor(smileyLEDS[i], color);
+  }
+}
+
+void wink() {
+  uint32_t winkTime = (millis()-lastModeChange)%3000; // todo: add some random amount too?
+  if (winkTime > 1000 && winkTime < 1600) {
+    pixels.setPixelColor(1, 0x000000);
+    pixels.setPixelColor(17, 0x000000);
+  }
+}
+
+void setRainbowSmileyPixels() {
+  for (int i = 0; i < 18; i++) {
+    pixels.setPixelColor(smileyLEDS[i], getRainbow(i*14+hue));
   }
 }
 
@@ -127,8 +138,7 @@ void setAllPixels(uint32_t color) {
   }
 }
 
-// todo: try invalid input.. can we save byte somewhere?
-// Input a value 0 to 255 to get a color value.
+// Input a value 0 to 255 to get a color value from the color wheel
 // this literally saves 40% of my ROM space, so... shamelessly reusing the sample code
 uint32_t getRainbow(byte WheelPos) {
   WheelPos = 255 - WheelPos;
