@@ -20,7 +20,7 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
 int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
 int horizontalLEDS[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 13, 11, 12, 12,
-                         20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28};
+                        20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28 };
 
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
@@ -97,10 +97,9 @@ void loop() {
     case 4: horizontalWheel(); break;
   }
 
-  // ok colorWipe is a cool transition actually, use it for 0
-  // possibly make another mode that wipes continuously updating (is that what rainbow() does?)
-  // i love rainbowCycle
-  //
+  // i love rainbowCycle.  implement that
+  // vertical wheel like horizontal
+  // infinity sign?
 
   // Update the LEDs
   pixels.show();
@@ -126,6 +125,20 @@ void rainbowCycle() {
 
 }
 
+void gradientRainbow(int startingLED) {
+  for (int i = 0; i < 18; i++) {
+    if (i < 9) {
+    }
+    else {
+    }
+  }
+  pixels.show();
+  delay(50);
+  hue += 10;
+}
+
+// if you can find a mathematical way to find these addresses.. you can abstract it
+// for any starting position, and get vertical/diagonals for free....
 void horizontalWheel() {
   for (int i = 0; i < 18; i++) {
     pixels.setPixelColor(horizontalLEDS[i * 2], getRainbow(i * 14 + hue));
