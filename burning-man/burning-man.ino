@@ -14,7 +14,7 @@
 #define LED_LENGTH 32
 #define BUTTON1_PIN 3
 #define BUTTON2_PIN 2
-#define MODE_SWITCH_MILLIS 10000
+#define MODE_SWITCH_MILLIS 100000
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
@@ -94,7 +94,7 @@ void loop() {
     case 3: rainbowCycle(); break;
     // 4: do some cool sin and cos shit to get waves of colors moving around your eyes
     // make this mode inaccessible and unaffected by the timer?
-    case 4: horizontalWheel(); break;
+    case 4: gradientRainbow(); break;
   }
 
   // i love rainbowCycle.  implement that
@@ -125,14 +125,35 @@ void rainbowCycle() {
 
 }
 
-void gradientRainbow(int startingLED) {
+// horizontal gradients seem to work fine
+// vertical gradients have some mistakes...
+void gradientRainbow() {
+  int startingLED = modeCounter/10;
   for (int i = 0; i < 18; i++) {
     if (i < 9) {
+      int topLED = startingLED - i;
+      if (topLED < 0) topLED = 16 + topLED;
+      
+      int bottomLED = startingLED + i;
+      if (bottomLED > 15) bottomLED = 16 - bottomLED;
+      
+      pixels.setPixelColor(topLED, getRainbow(i * 14 + hue));
+      pixels.setPixelColor(bottomLED, getRainbow(i * 14 + hue));
     }
     else {
+      int topLED = (startingLED+16) - (i-9);
+      if (topLED < 16) topLED = 32 - (16 - topLED);
+      
+      int bottomLED = (startingLED+16) + (i-9);
+      if (bottomLED > 31) bottomLED = 32 - (bottomLED-16);
+      
+      pixels.setPixelColor(topLED, getRainbow(i * 14 + hue));
+      pixels.setPixelColor(bottomLED, getRainbow(i * 14 + hue));
     }
   }
   pixels.show();
+  modeCounter++;
+  if(modeCounter > 159) modeCounter = 0;
   delay(50);
   hue += 10;
 }
@@ -145,7 +166,7 @@ void horizontalWheel() {
     pixels.setPixelColor(horizontalLEDS[i * 2 + 1], getRainbow(i * 14 + hue));
   }
   pixels.show();
-  delay(50);
+  delay(30);
   hue += 10;
 }
 
