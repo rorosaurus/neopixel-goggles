@@ -19,7 +19,8 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
 int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
-int horizontalLEDS[] = {4, 4, 3, 5, 2, 6, 1, 7, 0, 8, 15, 9, 14, 10, 13, 11, 12, 12};
+int horizontalLEDS[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 13, 11, 12, 12,
+                         20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28};
 
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
@@ -90,25 +91,16 @@ void loop() {
     // 2: opposite rainbow spinners
     case 2: oppositeSpin(getRainbow(hue)); break;
     // 3: rainbow thing
-    case 3:  rainbowCycle(); break;
+    case 3: rainbowCycle(); break;
     // 4: do some cool sin and cos shit to get waves of colors moving around your eyes
     // make this mode inaccessible and unaffected by the timer?
-    case 4: {
-      if (modeCounter >= 9) modeCounter = 0;
-      pixels.setPixelColor(horizontalLEDS[modeCounter*2], getRainbow(hue));
-      pixels.setPixelColor(horizontalLEDS[modeCounter*2+1], getRainbow(hue));
-      pixels.show();
-      delay(50);
-      hue += 10;
-      modeCounter++;
-      break;
-    }
+    case 4: horizontalWheel(); break;
   }
 
   // ok colorWipe is a cool transition actually, use it for 0
   // possibly make another mode that wipes continuously updating (is that what rainbow() does?)
   // i love rainbowCycle
-  // 
+  //
 
   // Update the LEDs
   pixels.show();
@@ -126,12 +118,22 @@ void loop() {
 
 void rainbowCycle() {
   uint16_t i, j;
-    for(i=0; i < pixels.numPixels(); i++) {
-      pixels.setPixelColor(i, getRainbow(((i / pixels.numPixels()) ) & 255));
-    }
-    pixels.show();
-    delay(20);
-  
+  for (i = 0; i < pixels.numPixels(); i++) {
+    pixels.setPixelColor(i, getRainbow(((i / pixels.numPixels()) ) & 255));
+  }
+  pixels.show();
+  delay(20);
+
+}
+
+void horizontalWheel() {
+  for (int i = 0; i < 18; i++) {
+    pixels.setPixelColor(horizontalLEDS[i * 2], getRainbow(i * 14 + hue));
+    pixels.setPixelColor(horizontalLEDS[i * 2 + 1], getRainbow(i * 14 + hue));
+  }
+  pixels.show();
+  delay(50);
+  hue += 10;
 }
 
 // each eye rotates two opposite LED patches
@@ -158,7 +160,7 @@ void setSmileyPixels(uint32_t color) {
 }
 
 void wink() {
-  uint32_t winkTime = (millis()-lastModeChange)%3000; // todo: add some random amount too?
+  uint32_t winkTime = (millis() - lastModeChange) % 3000; // todo: add some random amount too?
   if (winkTime > 1000 && winkTime < 1600) {
     pixels.setPixelColor(1, 0x000000);
     pixels.setPixelColor(17, 0x000000);
@@ -167,7 +169,7 @@ void wink() {
 
 void setRainbowSmileyPixels() {
   for (int i = 0; i < 18; i++) {
-    pixels.setPixelColor(smileyLEDS[i], getRainbow(i*14+hue));
+    pixels.setPixelColor(smileyLEDS[i], getRainbow(i * 14 + hue));
   }
 }
 
@@ -178,15 +180,15 @@ void setAllPixels(uint32_t color) {
   }
 }
 
-// todo: try dividing by two?
+// todo: mirror?
 void colorWipe(uint32_t color) {
-  if (modeCounter >= pixels.numPixels()/2) modeCounter = 0;
-    pixels.setPixelColor(modeCounter, color);
-    pixels.setPixelColor(modeCounter+16, color);
-    pixels.show();
-    hue += 10; // the delta between this value and 14 is what makes this interesting visually
-    delay(50);
-    modeCounter++;
+  if (modeCounter >= pixels.numPixels() / 2) modeCounter = 0;
+  pixels.setPixelColor(modeCounter, color);
+  pixels.setPixelColor(modeCounter + 16, color);
+  pixels.show();
+  hue += 10; // the delta between this value and 14 is what makes this interesting visually
+  delay(50);
+  modeCounter++;
 }
 
 // Input a value 0 to 255 to get a color value from the color wheel
