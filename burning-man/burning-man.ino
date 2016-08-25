@@ -19,8 +19,12 @@
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
 int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
-int horizontalLEDS[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 13, 11, 12, 12,
-                        20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28 };
+int horizontalLEDs[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 13, 11, 12, 12,
+                        20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28};
+int verticalLEDs[] = { 0,  0, 15,  1, 14,  2, 13,  3, 12,  4, 11,  5, 10,  6,  9,  7,  8,  8,
+                      16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24};
+int diagonalLEDs[] = { 2,  2,  1,  3,  0,  4, 15,  5, 14,  6, 13,  7, 12,  8, 11,  9, 10, 10,
+                      18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26};
 
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
@@ -94,7 +98,7 @@ void loop() {
     case 3: rainbowCycle(); break;
     // 4: do some cool sin and cos shit to get waves of colors moving around your eyes
     // make this mode inaccessible and unaffected by the timer?
-    case 4: gradientRainbow(); break;
+    case 4: gradientRainbow((millis()/5000)%16); break;
   }
 
   // i love rainbowCycle.  implement that
@@ -127,8 +131,7 @@ void rainbowCycle() {
 
 // horizontal gradients seem to work fine
 // vertical gradients have some mistakes...
-void gradientRainbow() {
-  int startingLED = modeCounter/10;
+void gradientRainbow(int startingLED) {
   for (int i = 0; i < 18; i++) {
     if (i < 9) {
       int topLED = startingLED - i;
@@ -152,8 +155,6 @@ void gradientRainbow() {
     }
   }
   pixels.show();
-  modeCounter++;
-  if(modeCounter > 159) modeCounter = 0;
   delay(50);
   hue += 10;
 }
@@ -162,8 +163,8 @@ void gradientRainbow() {
 // for any starting position, and get vertical/diagonals for free....
 void horizontalWheel() {
   for (int i = 0; i < 18; i++) {
-    pixels.setPixelColor(horizontalLEDS[i * 2], getRainbow(i * 14 + hue));
-    pixels.setPixelColor(horizontalLEDS[i * 2 + 1], getRainbow(i * 14 + hue));
+    pixels.setPixelColor(horizontalLEDs[i * 2], getRainbow(i * 14 + hue));
+    pixels.setPixelColor(horizontalLEDs[i * 2 + 1], getRainbow(i * 14 + hue));
   }
   pixels.show();
   delay(30);
