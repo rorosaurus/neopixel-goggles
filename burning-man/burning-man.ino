@@ -27,14 +27,14 @@ int horizontalLEDs[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 
 int verticalLEDs[] = { 0,  0, 15,  1, 14,  2, 13,  3, 12,  4, 11,  5, 10,  6,  9,  7,  8,  8,
                        16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24
                      };
-//int verticalLEDstest[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28,
-//                           5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
-//                         };
+int verticalLEDsProper[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28,
+                           5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
+                         };
 int diagonalLEDs[] = { 2,  2,  1,  3,  0,  4, 15,  5, 14,  6, 13,  7, 12,  8, 11,  9, 10, 10,
                        18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26
                      };
 
-//int infinityLEDs[] = { 13, 14, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 19, 18, 17, 16, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 12};
+int infinityLEDs[] = { 13, 14, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 19, 18, 17, 16, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 12};
 
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
@@ -89,12 +89,12 @@ void loop() {
     lastModeChange = millis();
   }
   else if (button2NewState == LOW && button2OldState == HIGH) {
-    if (mode < 0 || mode >= 6) mode = 0;
+    if (mode < 0 || mode >= 5) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
   else if (useTimer && mode >= 0 && (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
-    if (mode < 0 || mode >= 6) mode = 0;
+    if (mode < 0 || mode >= 5) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
@@ -129,13 +129,13 @@ void loop() {
     case 4: rainbowGradient(horizontalLEDs); break;
 
     // rainbow gradient going diagonal
-    case 5: rainbowGradient(diagonalLEDs); break;
+//    case 5: rainbowGradient(diagonalLEDs); break;
 
     // rainbow gradient going vertical... except separate eyes
-    case 6: rainbowGradient(verticalLEDs); break;
+    //case 6: rainbowGradient(verticalLEDs); break;
 
     //
-//    case 7: writeRainbowFromArray(infinityLEDs); break;
+    case 5: writeRainbowFromArray(infinityLEDs); break;
   }
 
   // i love rainbowCycle.  implement that rainbowCycle()
@@ -157,17 +157,18 @@ void loop() {
   delay(10);
 }
 
-//void writeColorFromArray(int leds[], uint32_t color) {
-//  for (int i = 0; i < (sizeof(leds) / sizeof(int)); i++) {
-//    pixels.setPixelColor(leds[i], color);
-//  }
-//}
-//
-//void writeRainbowFromArray(int leds[]) {
-//  for (int i = 0; i < (sizeof(leds) / sizeof(int)); i++) {
-//    pixels.setPixelColor(leds[i], getRainbow((i*(255/(sizeof(leds) / sizeof(int)))) + hue));
-//  }
-//}
+void writeColorFromArray(int leds[], uint32_t color) {
+  for (int i = 0; i < (sizeof(leds) / sizeof(int)); i++) {
+    pixels.setPixelColor(leds[i], color);
+  }
+}
+
+//(sizeof(leds) / sizeof(int)
+void writeRainbowFromArray(int leds[]) {
+  for (int i = 0; i < 40; i++) {
+    pixels.setPixelColor(leds[i], getRainbow((i*(255/40)) + hue));
+  }
+}
 
 
 void setSun(int b) {
