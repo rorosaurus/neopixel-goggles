@@ -28,8 +28,8 @@ int verticalLEDs[] = { 0,  0, 15,  1, 14,  2, 13,  3, 12,  4, 11,  5, 10,  6,  9
                        16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24
                      };
 int verticalLEDsProper[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28,
-                           5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
-                         };
+                             5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
+                           };
 int diagonalLEDs[] = { 2,  2,  1,  3,  0,  4, 15,  5, 14,  6, 13,  7, 12,  8, 11,  9, 10, 10,
                        18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26
                      };
@@ -50,7 +50,7 @@ int brightness = 85;
 
 int mode = 0;
 uint32_t lastModeChange;
-uint32_t randColor;
+//uint32_t randColor;
 
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -61,13 +61,13 @@ void setup() {
   pixels.begin();
   pixels.setBrightness(85); // 1/3 brightness
   lastModeChange = millis();
-  randomSeed(millis());
-  newRandColor();
+  //  randomSeed(millis());
+  //  newRandColor();
 }
 
-void newRandColor() {
-  randColor = pixels.Color(random(255), random(255), random(255));
-}
+//void newRandColor() {
+//  randColor = pixels.Color(random(255), random(255), random(255));
+//}
 
 void loop() {
   // Initialize all LEDs to off and reset brightness
@@ -119,8 +119,8 @@ void loop() {
     // colorwipe the rainbow cycle... like windshield wipers going around
     case 1: colorWipe(getRainbow(hue)); break;
 
-    // colorwipe with a random color
-    case 2: colorWipe(randColor); break;
+    // rotate a rainbow
+    case 2: rainbowRotate(); break;
 
     // opposite spinners slowly rotating through the rainbow
     case 3: oppositeSpin(getRainbow(hue)); break;
@@ -128,17 +128,17 @@ void loop() {
     // rainbow gradient going horizontal
     case 4: rainbowGradient(horizontalLEDs); break;
 
+    // rainbow gradient going vertical
+    case 5: rainbowGradient(verticalLEDs); break;
+
     // rainbow gradient going diagonal
-//    case 5: rainbowGradient(diagonalLEDs); break;
+    case 6: rainbowGradient(diagonalLEDs); break;
 
-    // rainbow gradient going vertical... except separate eyes
-    //case 6: rainbowGradient(verticalLEDs); break;
-
-    //
-    case 5: writeRainbowFromArray(infinityLEDs); break;
+      // it broke AF tho
+      //    case 7: writeRainbowFromArray(infinityLEDs); break;
   }
 
-  // i love rainbowCycle.  implement that rainbowCycle()
+  // i love rainbowCycle.  implement that rainbowCycle() and fix it?
   // vertical wheel like horizontal
   // infinity sign?
   // make a rainbow circle on each eye, then rotate it around
@@ -157,6 +157,16 @@ void loop() {
   delay(10);
 }
 
+void rainbowRotate() {
+  if (modeCounter >= 16)  modeCounter = 0;
+  for (int i=0; i < 16; i++){
+    pixels.setPixelColor(i, getRainbow(i+modeCounter * 16));
+    pixels.setPixelColor(31-i, getRainbow(i+modeCounter * 16));
+  }
+  modeCounter++;
+  delay(20);
+}
+
 void writeColorFromArray(int leds[], uint32_t color) {
   for (int i = 0; i < (sizeof(leds) / sizeof(int)); i++) {
     pixels.setPixelColor(leds[i], color);
@@ -166,7 +176,7 @@ void writeColorFromArray(int leds[], uint32_t color) {
 //(sizeof(leds) / sizeof(int)
 void writeRainbowFromArray(int leds[]) {
   for (int i = 0; i < 40; i++) {
-    pixels.setPixelColor(leds[i], getRainbow((i*(255/40)) + hue));
+    pixels.setPixelColor(leds[i], getRainbow((i * (255 / 40)) + hue));
   }
 }
 
@@ -176,7 +186,7 @@ void setSun(int b) {
   int numToLight = b / 16;
   for (int i = 0; i < numToLight; i++) {
     pixels.setPixelColor(i, getRainbow(i * 16 + hue));
-    pixels.setPixelColor(i + 16, getRainbow(i * 16 + hue));
+    pixels.setPixelColor(31 - i, getRainbow(i * 16 + hue));
   }
 }
 
@@ -282,7 +292,7 @@ void setAllPixels(uint32_t color) {
 void colorWipe(uint32_t color) {
   if (modeCounter >= pixels.numPixels() / 2) {
     modeCounter = 0;
-    newRandColor();
+    //    newRandColor();
   }
   pixels.setPixelColor(modeCounter, color);
   pixels.setPixelColor(31 - modeCounter, color);
