@@ -20,14 +20,22 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
 int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
 int horizontalLEDs[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 13, 11, 12, 12,
-                        20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28};
+                         20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28
+                       };
 int verticalLEDs[] = { 0,  0, 15,  1, 14,  2, 13,  3, 12,  4, 11,  5, 10,  6,  9,  7,  8,  8,
-                      16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24};
+                       16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24
+                     };
+int verticalLEDstest[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28, 
+                       5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
+                     };
 int diagonalLEDs[] = { 2,  2,  1,  3,  0,  4, 15,  5, 14,  6, 13,  7, 12,  8, 11,  9, 10, 10,
-                      18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26};
+                       18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26
+                     };
 
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
+
+bool useTimer = true;
 
 // always cycle through the rainbow
 int hue = 0;
@@ -62,7 +70,8 @@ void loop() {
 
   // Button and State machine management
   if (button1NewState == LOW && button2NewState == LOW) {
-    brightness = hue;
+    brightness = hue;  // in the future, it'd be cool to have a brightness mode which "filled" the LEDs to indicate brightness levels
+    useTimer = false;
   }
   if (button1NewState == LOW && button1OldState == HIGH) {
     if (mode >= 0 || mode <= -3) mode = -1;
@@ -74,7 +83,7 @@ void loop() {
     else mode++;
     lastModeChange = millis();
   }
-  else if (mode >= 0 && (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
+  else if (useTimer && mode >= 0 && (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
     if (mode < 0 || mode >= 4) mode = 0;
     else mode++;
     lastModeChange = millis();
@@ -85,25 +94,26 @@ void loop() {
     // -3: flashlight; force max brightness
     case -3: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
     // -2: winky face, using color 0xFFD700
-    case -2: setSmileyPixels(0xFFD700); wink(); break;
+    case -2: setAllPixels(0x000000); setSmileyPixels(0xFFD700); wink(); break;
     // -1: smiley face, cycling rainbow for now!
-    case -1: setRainbowSmileyPixels(); break;
+    case -1: setAllPixels(0x000000); setRainbowSmileyPixels(); break;
     // 0: uniform rainbow cycle
     case 0: setAllPixels(getRainbow(hue)); break;
     // 1: colorwipe the rainbow cycle
     case 1: colorWipe(getRainbow(hue)); break;
     // 2: opposite rainbow spinners
     case 2: oppositeSpin(getRainbow(hue)); break;
-    // 3: rainbow thing
-    case 3: rainbowCycle(); break;
+    // 3: rainbow thing rainbowCycle()
+    case 3: rainbowGradient(horizontalLEDs); break;
     // 4: do some cool sin and cos shit to get waves of colors moving around your eyes
     // make this mode inaccessible and unaffected by the timer?
-    case 4: gradientRainbow((millis()/5000)%16); break;
+    case 4: rainbowGradient(verticalLEDstest); break;
   }
 
   // i love rainbowCycle.  implement that
   // vertical wheel like horizontal
   // infinity sign?
+  // make a rainbow circle on each eye, then rotate it around
 
   // Update the LEDs
   pixels.show();
@@ -136,20 +146,20 @@ void gradientRainbow(int startingLED) {
     if (i < 9) {
       int topLED = startingLED - i;
       if (topLED < 0) topLED = 16 + topLED;
-      
+
       int bottomLED = startingLED + i;
       if (bottomLED > 15) bottomLED = 16 - bottomLED;
-      
+
       pixels.setPixelColor(topLED, getRainbow(i * 14 + hue));
       pixels.setPixelColor(bottomLED, getRainbow(i * 14 + hue));
     }
     else {
-      int topLED = (startingLED+16) - (i-9);
+      int topLED = (startingLED + 16) - (i - 9);
       if (topLED < 16) topLED = 32 - (16 - topLED);
-      
-      int bottomLED = (startingLED+16) + (i-9);
-      if (bottomLED > 31) bottomLED = 32 - (bottomLED-16);
-      
+
+      int bottomLED = (startingLED + 16) + (i - 9);
+      if (bottomLED > 31) bottomLED = 32 - (bottomLED - 16);
+
       pixels.setPixelColor(topLED, getRainbow(i * 14 + hue));
       pixels.setPixelColor(bottomLED, getRainbow(i * 14 + hue));
     }
@@ -159,19 +169,26 @@ void gradientRainbow(int startingLED) {
   hue += 10;
 }
 
-// if you can find a mathematical way to find these addresses.. you can abstract it
-// for any starting position, and get vertical/diagonals for free....
-void horizontalWheel() {
-  for (int i = 0; i < 18; i++) {
-    pixels.setPixelColor(horizontalLEDs[i * 2], getRainbow(i * 14 + hue));
-    pixels.setPixelColor(horizontalLEDs[i * 2 + 1], getRainbow(i * 14 + hue));
+// rainbow gradient, switching direction every 5 seconds
+void rainbowGradient(int LEDmapping[]) {
+  if (millis() % 10000 > 5000) {
+    for (int i = 0; i < 18; i++) {
+      pixels.setPixelColor(LEDmapping[i * 2], getRainbow(i * 14 + hue));
+      pixels.setPixelColor(LEDmapping[i * 2 + 1], getRainbow(i * 14 + hue));
+    }
+  }
+  else {
+    for (int i = 0; i < 18; i++) {
+      pixels.setPixelColor(LEDmapping[i * 2], getRainbow((18 - i) * 14 + hue));
+      pixels.setPixelColor(LEDmapping[i * 2 + 1], getRainbow((18 - i) * 14 + hue));
+    }
   }
   pixels.show();
   delay(30);
   hue += 10;
 }
 
-// each eye rotates two opposite LED patches
+// each eye rotates three opposite LED patches
 // todo: randomize the number of LED patches
 void oppositeSpin(uint32_t color) {
   if (modeCounter >= 16) modeCounter = 0;
@@ -187,7 +204,6 @@ void oppositeSpin(uint32_t color) {
 }
 
 // sets the smiley pixels on both eyes
-// todo: try making this a rainbow mix of colors instead of one?
 void setSmileyPixels(uint32_t color) {
   for (int i = 0; i < 18; i++) {
     pixels.setPixelColor(smileyLEDS[i], color);
@@ -215,11 +231,10 @@ void setAllPixels(uint32_t color) {
   }
 }
 
-// todo: mirror?
 void colorWipe(uint32_t color) {
   if (modeCounter >= pixels.numPixels() / 2) modeCounter = 0;
   pixels.setPixelColor(modeCounter, color);
-  pixels.setPixelColor(modeCounter + 16, color);
+  pixels.setPixelColor(31 - modeCounter, color);
   pixels.show();
   hue += 10; // the delta between this value and 14 is what makes this interesting visually
   delay(50);
