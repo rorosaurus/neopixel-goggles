@@ -89,12 +89,12 @@ void loop() {
     lastModeChange = millis();
   }
   else if (button2NewState == LOW && button2OldState == HIGH) {
-    if (mode < 0 || mode >= 5) mode = 0;
+    if (mode < 0 || mode >= 7) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
   else if (useTimer && mode >= 0 && (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
-    if (mode < 0 || mode >= 5) mode = 0;
+    if (mode < 0 || mode >= 7) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
@@ -125,14 +125,20 @@ void loop() {
     // opposite spinners slowly rotating through the rainbow
     case 3: oppositeSpin(getRainbow(hue)); break;
 
-    // rainbow gradient going horizontal
+    // rainbow gradient going horizontal forwards
     case 4: rainbowGradient(horizontalLEDs); break;
 
-    // rainbow gradient going vertical
-    case 5: rainbowGradient(verticalLEDs); break;
+    // rainbow gradient going horizontal backwards
+    case 5: rainbowGradient(horizontalLEDs); break;
 
-    // rainbow gradient going diagonal
-//    case 6: rainbowGradient(diagonalLEDs); break;
+    // rainbow gradient going vertical forwards
+    case 6: rainbowGradient(verticalLEDs); break;
+
+    // rainbow gradient going vertical backwards
+    case 7: rainbowGradient(verticalLEDs); break;
+
+      // rainbow gradient going diagonal
+      //    case 6: rainbowGradient(diagonalLEDs); break;
 
       // it broke AF tho
       //    case 7: writeRainbowFromArray(infinityLEDs); break;
@@ -159,7 +165,7 @@ void loop() {
 
 void rainbowRotate() {
   if (modeCounter >= 16)  modeCounter = 0;
-  for (int i=0; i < 16; i++){
+  for (int i = 0; i < 16; i++) {
     int leftLED = i + modeCounter;
     int rightLED = 16 + i + modeCounter;
     if (leftLED > 15) leftLED = leftLED - 16;
@@ -234,7 +240,7 @@ void gradientRainbow(int startingLED) {
 
 // rainbow gradient, switching direction every 5 seconds
 void rainbowGradient(int LEDmapping[]) {
-  if (millis() % 10000 > 5000) {
+  if (mode % 2 == 0) {
     for (int i = 0; i < 18; i++) {
       pixels.setPixelColor(LEDmapping[i * 2], getRainbow(i * 14 + hue));
       pixels.setPixelColor(LEDmapping[i * 2 + 1], getRainbow(i * 14 + hue));
