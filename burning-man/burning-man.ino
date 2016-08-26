@@ -132,7 +132,7 @@ void loop() {
     case 5: rainbowGradient(verticalLEDs); break;
 
     // rainbow gradient going diagonal
-    case 6: rainbowGradient(diagonalLEDs); break;
+//    case 6: rainbowGradient(diagonalLEDs); break;
 
       // it broke AF tho
       //    case 7: writeRainbowFromArray(infinityLEDs); break;
@@ -160,8 +160,12 @@ void loop() {
 void rainbowRotate() {
   if (modeCounter >= 16)  modeCounter = 0;
   for (int i=0; i < 16; i++){
-    pixels.setPixelColor(i, getRainbow(i+modeCounter * 16));
-    pixels.setPixelColor(31-i, getRainbow(i+modeCounter * 16));
+    int leftLED = i + modeCounter;
+    int rightLED = 16 + i + modeCounter;
+    if (leftLED > 15) leftLED = leftLED - 16;
+    if (rightLED > 31) rightLED = rightLED - 16;
+    pixels.setPixelColor(leftLED, getRainbow(i * 16));
+    pixels.setPixelColor(rightLED, getRainbow(i * 16));
   }
   modeCounter++;
   delay(20);
