@@ -2,6 +2,8 @@
 // 16 is left eye top (between star and data out)
 // inc clockwise looking out
 
+// apparently you need to keep it under 94% (4,992 bytes) program storage space used or it fails to initialize?
+
 // todo: figure out this uint32_t, etc shit.  can i save more space?
 
 #include <Adafruit_NeoPixel.h>
@@ -14,7 +16,7 @@
 #define LED_LENGTH 32
 #define BUTTON1_PIN 3
 #define BUTTON2_PIN 2
-#define MODE_SWITCH_MILLIS 100000
+#define MODE_SWITCH_MILLIS 10000
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
 
@@ -25,12 +27,14 @@ int horizontalLEDs[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 
 int verticalLEDs[] = { 0,  0, 15,  1, 14,  2, 13,  3, 12,  4, 11,  5, 10,  6,  9,  7,  8,  8,
                        16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24
                      };
-int verticalLEDstest[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28, 
-                       5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
-                     };
+//int verticalLEDstest[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28,
+//                           5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
+//                         };
 int diagonalLEDs[] = { 2,  2,  1,  3,  0,  4, 15,  5, 14,  6, 13,  7, 12,  8, 11,  9, 10, 10,
                        18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26
                      };
+
+//int infinityLEDs[] = { 13, 14, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 19, 18, 17, 16, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 12};
 
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
@@ -46,6 +50,7 @@ int brightness = 85;
 
 int mode = 0;
 uint32_t lastModeChange;
+uint32_t randColor;
 
 void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -57,6 +62,11 @@ void setup() {
   pixels.setBrightness(85); // 1/3 brightness
   lastModeChange = millis();
   randomSeed(millis());
+  newRandColor();
+}
+
+void newRandColor() {
+  randColor = pixels.Color(random(255), random(255), random(255));
 }
 
 void loop() {
@@ -69,48 +79,66 @@ void loop() {
   bool button2NewState = digitalRead(BUTTON2_PIN);
 
   // Button and State machine management
-  if (button1NewState == LOW && button2NewState == LOW) {
-    brightness = hue;  // in the future, it'd be cool to have a brightness mode which "filled" the LEDs to indicate brightness levels
-    useTimer = false;
+  if (button1NewState == LOW && button2NewState == LOW &&
+      (button1OldState == HIGH || button2OldState == HIGH)) {
+    useTimer = !useTimer;
   }
   if (button1NewState == LOW && button1OldState == HIGH) {
-    if (mode >= 0 || mode <= -3) mode = -1;
+    if (mode >= 0 || mode <= -4) mode = -1;
     else mode--;
     lastModeChange = millis();
   }
   else if (button2NewState == LOW && button2OldState == HIGH) {
-    if (mode < 0 || mode >= 4) mode = 0;
+    if (mode < 0 || mode >= 6) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
   else if (useTimer && mode >= 0 && (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
-    if (mode < 0 || mode >= 4) mode = 0;
+    if (mode < 0 || mode >= 6) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
 
   // Flashy light stuff time!
   switch (mode) {
-    // -3: flashlight; force max brightness
+    // brightness adjusting mode
+    case -4: setAllPixels(0x000000); setSun(hue); break;
+
+    // flashlight; force max brightness
     case -3: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
-    // -2: winky face, using color 0xFFD700
+
+    // winky face, using color 0xFFD700
     case -2: setAllPixels(0x000000); setSmileyPixels(0xFFD700); wink(); break;
-    // -1: smiley face, cycling rainbow for now!
+
+    // smiley face, cycling rainbow for now!
     case -1: setAllPixels(0x000000); setRainbowSmileyPixels(); break;
-    // 0: uniform rainbow cycle
+
+    // uniform colors, a rainbow cycling
     case 0: setAllPixels(getRainbow(hue)); break;
-    // 1: colorwipe the rainbow cycle
+
+    // colorwipe the rainbow cycle... like windshield wipers going around
     case 1: colorWipe(getRainbow(hue)); break;
-    // 2: opposite rainbow spinners
-    case 2: oppositeSpin(getRainbow(hue)); break;
-    // 3: rainbow thing rainbowCycle()
-    case 3: rainbowGradient(horizontalLEDs); break;
-    // 4: do some cool sin and cos shit to get waves of colors moving around your eyes
-    // make this mode inaccessible and unaffected by the timer?
-    case 4: rainbowGradient(verticalLEDstest); break;
+
+    // colorwipe with a random color
+    case 2: colorWipe(randColor); break;
+
+    // opposite spinners slowly rotating through the rainbow
+    case 3: oppositeSpin(getRainbow(hue)); break;
+
+    // rainbow gradient going horizontal
+    case 4: rainbowGradient(horizontalLEDs); break;
+
+    // rainbow gradient going diagonal
+    case 5: rainbowGradient(diagonalLEDs); break;
+
+    // rainbow gradient going vertical... except separate eyes
+    case 6: rainbowGradient(verticalLEDs); break;
+
+    //
+//    case 7: writeRainbowFromArray(infinityLEDs); break;
   }
 
-  // i love rainbowCycle.  implement that
+  // i love rainbowCycle.  implement that rainbowCycle()
   // vertical wheel like horizontal
   // infinity sign?
   // make a rainbow circle on each eye, then rotate it around
@@ -129,12 +157,33 @@ void loop() {
   delay(10);
 }
 
+//void writeColorFromArray(int leds[], uint32_t color) {
+//  for (int i = 0; i < (sizeof(leds) / sizeof(int)); i++) {
+//    pixels.setPixelColor(leds[i], color);
+//  }
+//}
+//
+//void writeRainbowFromArray(int leds[]) {
+//  for (int i = 0; i < (sizeof(leds) / sizeof(int)); i++) {
+//    pixels.setPixelColor(leds[i], getRainbow((i*(255/(sizeof(leds) / sizeof(int)))) + hue));
+//  }
+//}
+
+
+void setSun(int b) {
+  brightness = b;
+  int numToLight = b / 16;
+  for (int i = 0; i < numToLight; i++) {
+    pixels.setPixelColor(i, getRainbow(i * 16 + hue));
+    pixels.setPixelColor(i + 16, getRainbow(i * 16 + hue));
+  }
+}
+
 void rainbowCycle() {
   uint16_t i, j;
   for (i = 0; i < pixels.numPixels(); i++) {
     pixels.setPixelColor(i, getRainbow(((i / pixels.numPixels()) ) & 255));
   }
-  pixels.show();
   delay(20);
 
 }
@@ -164,7 +213,6 @@ void gradientRainbow(int startingLED) {
       pixels.setPixelColor(bottomLED, getRainbow(i * 14 + hue));
     }
   }
-  pixels.show();
   delay(50);
   hue += 10;
 }
@@ -183,7 +231,6 @@ void rainbowGradient(int LEDmapping[]) {
       pixels.setPixelColor(LEDmapping[i * 2 + 1], getRainbow((18 - i) * 14 + hue));
     }
   }
-  pixels.show();
   delay(30);
   hue += 10;
 }
@@ -232,7 +279,10 @@ void setAllPixels(uint32_t color) {
 }
 
 void colorWipe(uint32_t color) {
-  if (modeCounter >= pixels.numPixels() / 2) modeCounter = 0;
+  if (modeCounter >= pixels.numPixels() / 2) {
+    modeCounter = 0;
+    newRandColor();
+  }
   pixels.setPixelColor(modeCounter, color);
   pixels.setPixelColor(31 - modeCounter, color);
   pixels.show();
