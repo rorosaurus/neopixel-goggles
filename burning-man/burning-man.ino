@@ -40,8 +40,6 @@ int infinityLEDs[] = { 13, 14, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 19, 18
 bool button1OldState = HIGH;
 bool button2OldState = HIGH;
 
-bool useTimer = true;
-
 // always cycle through the rainbow
 int hue = 0;
 // keep track of each mode's progress
@@ -80,21 +78,21 @@ void loop() {
   bool button2NewState = digitalRead(BUTTON2_PIN);
 
   // Button and State machine management
+
+  // if we press both buttons turn on the flashlight
   if (button1NewState == LOW && button2NewState == LOW &&
       (button1OldState == HIGH || button2OldState == HIGH)) {
-    useTimer = !useTimer;
+    mode = -4;
   }
+  // if we press the top button, switch between utility modes
   if (button1NewState == LOW && button1OldState == HIGH) {
-    if (mode >= 0 || mode <= -4) mode = -1;
+    if (mode >= 0 || mode <= -3) mode = -1;
     else mode--;
     lastModeChange = millis();
   }
-  else if (button2NewState == LOW && button2OldState == HIGH) {
-    if (mode < 0 || mode >= 7) mode = 0;
-    else mode++;
-    lastModeChange = millis();
-  }
-  else if (useTimer && mode >= 0 && (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
+  // if we press the bottom button or run out of time, switch between the visualizations
+  else if ((button2NewState == LOW && button2OldState == HIGH) || 
+          (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
     if (mode < 0 || mode >= 7) mode = 0;
     else mode++;
     lastModeChange = millis();
@@ -102,11 +100,11 @@ void loop() {
 
   // Flashy light stuff time!
   switch (mode) {
-    // brightness adjusting mode
-    case -4: setAllPixels(0x000000); setSun(hue); break;
-
     // flashlight; force max brightness
-    case -3: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
+    case -4: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
+
+    // brightness adjusting mode
+    case -3: setAllPixels(0x000000); setSun(hue); break;
 
     // winky face, using color 0xFFD700
     case -2: setAllPixels(0x000000); setSmileyPixels(0xFFD700); wink(); break;
