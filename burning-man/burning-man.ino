@@ -3,6 +3,7 @@
 // inc clockwise looking out
 
 // apparently you need to keep it under 94% (4,992 bytes) program storage space used or it fails to initialize?
+// actually more accurately it seems like I have to use < 255 bytes of dynamic memory... that appears to be the limit we're hitting?
 
 // todo: figure out this uint32_t, etc shit.  can i save more space?
 
@@ -59,7 +60,7 @@ void setup() {
   pinMode(BUTTON1_PIN, INPUT_PULLUP);
   pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
-  pixels.setBrightness(85); // 1/3 brightness
+  pixels.setBrightness(16); // 1/16th brightness
   lastModeChange = millis();
   //  randomSeed(millis());
   //  newRandColor();
