@@ -44,8 +44,8 @@ bool button2OldState = HIGH;
 int hue = 0;
 // keep track of each mode's progress
 int modeCounter = 0;
-// fall back brightness, default to 1/3
-int brightness = 85;
+// fall back brightness, default to ~1/10th max
+int brightness = 25;
 
 int mode = 0;
 uint32_t lastModeChange;
@@ -58,7 +58,7 @@ void setup() {
   pinMode(BUTTON1_PIN, INPUT_PULLUP);
   pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
-  pixels.setBrightness(16); // 1/16th brightness
+  pixels.setBrightness(brightness);
   lastModeChange = millis();
   //  randomSeed(millis());
   //  newRandColor();
