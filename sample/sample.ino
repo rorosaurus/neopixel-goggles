@@ -6,9 +6,9 @@
  #include <avr/power.h>
 #endif
 
-#define PIN 0
+#define PIN 4
 
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(32, PIN);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(16, PIN);
 
 uint8_t  mode   = 0, // Current animation effect
          offset = 0; // Position of spinny eyes
@@ -16,17 +16,21 @@ uint32_t color  = 0xFF0000; // Start red
 uint32_t prevTime;
 
 void setup() {
+  digitalWrite(LED_BUILTIN, LOW);
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
   if(F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif
   pixels.begin();
-  pixels.setBrightness(85); // 1/3 brightness
+  pixels.setBrightness(255); // 1/3 brightness
   prevTime = millis();
 }
 
 void loop() {
   uint8_t  i;
   uint32_t t;
+
+  bool ledStatus = millis()%1000 < 500;
+  digitalWrite(LED_BUILTIN, ledStatus);
 
   switch(mode) {
 

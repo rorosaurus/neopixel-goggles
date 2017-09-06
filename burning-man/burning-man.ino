@@ -13,39 +13,18 @@
 #include <avr/power.h>
 #endif
 
-#define LED_PIN 0
-#define LED_LENGTH 32
-#define BUTTON1_PIN 3
-#define BUTTON2_PIN 2
+#define LED_PIN 1
+#define LED_LENGTH 2
 #define MODE_SWITCH_MILLIS 10000
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(LED_LENGTH, LED_PIN);
-
-int smileyLEDS[] = {1, 15, 5, 6, 7, 8, 9, 10, 11, 17, 31, 21, 22, 23, 24, 25, 26, 27};
-int horizontalLEDs[] = { 4,  4,  3,  5,  2,  6,  1,  7,  0,  8, 15,  9, 14, 10, 13, 11, 12, 12,
-                         20, 20, 19, 21, 18, 22, 17, 23, 16, 24, 31, 25, 30, 26, 29, 27, 28, 28
-                       };
-int verticalLEDs[] = { 0,  0, 15,  1, 14,  2, 13,  3, 12,  4, 11,  5, 10,  6,  9,  7,  8,  8,
-                       16, 16, 31, 17, 30, 18, 29, 19, 28, 20, 27, 21, 26, 22, 25, 23, 24, 24
-                     };
-int verticalLEDsProper[] = { 0,  0, 16, 16, 1,  15, 17,  31, 2,  14, 18,  30, 3,  13,  19,  29,  4,  12, 20, 28,
-                             5, 11, 21, 27, 6, 10, 22, 26, 7, 9, 22, 26, 8, 8, 23, 25, 24, 24, 24, 24
-                           };
-int diagonalLEDs[] = { 2,  2,  1,  3,  0,  4, 15,  5, 14,  6, 13,  7, 12,  8, 11,  9, 10, 10,
-                       18, 18, 17, 19, 16, 20, 31, 21, 30, 22, 29, 23, 28, 24, 27, 25, 26, 26
-                     };
-
-int infinityLEDs[] = { 13, 14, 15, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 19, 18, 17, 16, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 12};
-
-bool button1OldState = HIGH;
-bool button2OldState = HIGH;
 
 // always cycle through the rainbow
 int hue = 0;
 // keep track of each mode's progress
 int modeCounter = 0;
 // fall back brightness, default to ~1/10th max
-int brightness = 25;
+int brightness = 255;
 
 int mode = 0;
 uint32_t lastModeChange;
@@ -55,8 +34,6 @@ void setup() {
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
   if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
 #endif
-  pinMode(BUTTON1_PIN, INPUT_PULLUP);
-  pinMode(BUTTON2_PIN, INPUT_PULLUP);
   pixels.begin();
   pixels.setBrightness(brightness);
   lastModeChange = millis();
@@ -73,44 +50,27 @@ void loop() {
   //setAllPixels(0x000000);
   pixels.setBrightness(brightness);
 
-  // Update current button state
-  bool button1NewState = digitalRead(BUTTON1_PIN);
-  bool button2NewState = digitalRead(BUTTON2_PIN);
 
-  // Button and State machine management
-
-  // if we press both buttons turn on the flashlight
-  if (button1NewState == LOW && button2NewState == LOW &&
-      (button1OldState == HIGH || button2OldState == HIGH)) {
-    mode = -4;
-  }
-  // if we press the top button, switch between utility modes
-  if (button1NewState == LOW && button1OldState == HIGH) {
-    if (mode >= 0 || mode <= -3) mode = -1;
-    else mode--;
-    lastModeChange = millis();
-  }
   // if we press the bottom button or run out of time, switch between the visualizations
-  else if ((button2NewState == LOW && button2OldState == HIGH) || 
-          (millis() > lastModeChange + MODE_SWITCH_MILLIS)) {
-    if (mode < 0 || mode >= 7) mode = 0;
+  if (millis() > lastModeChange + MODE_SWITCH_MILLIS) {
+    if (mode < 0 || mode >= 3) mode = 0;
     else mode++;
     lastModeChange = millis();
   }
 
   // Flashy light stuff time!
   switch (mode) {
-    // flashlight; force max brightness
-    case -4: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
-
-    // brightness adjusting mode
-    case -3: setAllPixels(0x000000); setSun(hue); break;
-
-    // winky face, using color 0xFFD700
-    case -2: setAllPixels(0x000000); setSmileyPixels(0xFFD700); wink(); break;
-
-    // smiley face, cycling rainbow for now!
-    case -1: setAllPixels(0x000000); setRainbowSmileyPixels(); break;
+//    // flashlight; force max brightness
+//    case -4: pixels.setBrightness(255); setAllPixels(0xFFFFFF); break;
+//
+//    // brightness adjusting mode
+//    case -3: setAllPixels(0x000000); setSun(hue); break;
+//
+//    // winky face, using color 0xFFD700
+//    case -2: setAllPixels(0x000000); setSmileyPixels(0xFFD700); wink(); break;
+//
+//    // smiley face, cycling rainbow for now!
+//    case -1: setAllPixels(0x000000); setRainbowSmileyPixels(); break;
 
     // uniform colors, a rainbow cycling
     case 0: setAllPixels(getRainbow(hue)); break;
@@ -124,17 +84,17 @@ void loop() {
     // opposite spinners slowly rotating through the rainbow
     case 3: oppositeSpin(getRainbow(hue)); break;
 
-    // rainbow gradient going horizontal forwards
-    case 4: rainbowGradient(horizontalLEDs); break;
-
-    // rainbow gradient going horizontal backwards
-    case 5: rainbowGradient(horizontalLEDs); break;
-
-    // rainbow gradient going vertical forwards
-    case 6: rainbowGradient(verticalLEDs); break;
-
-    // rainbow gradient going vertical backwards
-    case 7: rainbowGradient(verticalLEDs); break;
+//    // rainbow gradient going horizontal forwards
+//    case 4: rainbowGradient(horizontalLEDs); break;
+//
+//    // rainbow gradient going horizontal backwards
+//    case 5: rainbowGradient(horizontalLEDs); break;
+//
+//    // rainbow gradient going vertical forwards
+//    case 6: rainbowGradient(verticalLEDs); break;
+//
+//    // rainbow gradient going vertical backwards
+//    case 7: rainbowGradient(verticalLEDs); break;
 
       // rainbow gradient going diagonal
       //    case 6: rainbowGradient(diagonalLEDs); break;
@@ -150,10 +110,6 @@ void loop() {
 
   // Update the LEDs
   pixels.show();
-
-  // Update button state variables
-  button1OldState = button1NewState;
-  button2OldState = button2NewState;
 
   // Rotate through our rainbow always
   hue++;
@@ -271,11 +227,11 @@ void oppositeSpin(uint32_t color) {
 }
 
 // sets the smiley pixels on both eyes
-void setSmileyPixels(uint32_t color) {
-  for (int i = 0; i < 18; i++) {
-    pixels.setPixelColor(smileyLEDS[i], color);
-  }
-}
+//void setSmileyPixels(uint32_t color) {
+//  for (int i = 0; i < 18; i++) {
+//    pixels.setPixelColor(smileyLEDS[i], color);
+//  }
+//}
 
 void wink() {
   uint32_t winkTime = (millis() - lastModeChange) % 3000; // todo: add some random amount too?
@@ -285,11 +241,11 @@ void wink() {
   }
 }
 
-void setRainbowSmileyPixels() {
-  for (int i = 0; i < 18; i++) {
-    pixels.setPixelColor(smileyLEDS[i], getRainbow(i * 14 + hue));
-  }
-}
+//void setRainbowSmileyPixels() {
+//  for (int i = 0; i < 18; i++) {
+//    pixels.setPixelColor(smileyLEDS[i], getRainbow(i * 14 + hue));
+//  }
+//}
 
 // sets all the LEDs on both eyes
 void setAllPixels(uint32_t color) {
