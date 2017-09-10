@@ -46,7 +46,7 @@ int hue = 0;
 // keep track of each mode's progress
 int modeCounter = 0;
 // fall back brightness, default to ~1/10th max
-int brightness = 50;
+int brightness = 25;
 
 int mode = 0;
 uint32_t lastModeChange;
@@ -192,7 +192,9 @@ void setABGTRibbons() {
       pixels.setPixelColor((8*j)+i, color);
     }
   }
-  //pixels.setBrightness(hue);
+  int tempBright = hue%64;
+  if (hue%64 > 32) tempBright = 64 - hue%64;
+  pixels.setBrightness(map(tempBright, 0, 63, 10, 40));
 }
 
 void rainbowRotate() {
