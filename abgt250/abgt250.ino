@@ -8,16 +8,6 @@
 // todo: figure out this uint32_t, etc shit.  can i save more space?
 
 
-// abgt colors, starting top and going clockwise
-// 0xb3a7b5 purple
-// 0x2f8c8f blue
-// 0xbaac52 yellow
-// 0x8eba68 green
-// 0xd4d6d0 white
-// 0x203166 dark blue
-// 0xa14433 orange
-// 0xa12525 red
-
 #include <Adafruit_NeoPixel.h>
 
 #ifdef __AVR_ATtiny85__ // Trinket, Gemma, etc.
@@ -56,7 +46,7 @@ int hue = 0;
 // keep track of each mode's progress
 int modeCounter = 0;
 // fall back brightness, default to ~1/10th max
-int brightness = 25;
+int brightness = 50;
 
 int mode = 0;
 uint32_t lastModeChange;
@@ -124,7 +114,9 @@ void loop() {
     case -1: setAllPixels(0x000000); setRainbowSmileyPixels(); break;
 
     // uniform colors, a rainbow cycling
-    case 0: setAllPixels(getRainbow(hue)); break;
+    //case 0: setAllPixels(getRainbow(hue)); break;
+    // abgt ribbons
+    case 0: setABGTRibbons(); break;
 
     // colorwipe the rainbow cycle... like windshield wipers going around
     case 1: colorWipe(getRainbow(hue)); break;
@@ -171,6 +163,36 @@ void loop() {
   if (hue > 255) hue = 0;
 
   delay(10);
+}
+
+// abgt colors, starting top and going clockwise
+// 0x2f8c8f blue 128
+// 0xb3a7b5 purple 192-224?
+// 0xa12525 red 0
+// 0xa14433 orange 255?
+// 0x203166 dark blue 160
+// 0xd4d6d0 white 
+// 0x8eba68 green 64?
+// 0xbaac52 yellow 32?
+
+void setABGTRibbons() {
+  for (int i = 0; i < 8; i++){
+    uint32_t color = 0x000000;
+    switch (i) {
+      case 0: color = getRainbow(128); break;
+      case 1: color = getRainbow(208); break;
+      case 2: color = getRainbow(0); break;
+      case 3: color = getRainbow(16); break;
+      case 4: color = getRainbow(160); break;
+      case 5: color = 0xFFFFFF; break;
+      case 6: color = getRainbow(64); break;
+      case 7: color = getRainbow(32); break;
+    }
+    for (int j = 0; j < 4; j++){
+      pixels.setPixelColor((8*j)+i, color);
+    }
+  }
+  //pixels.setBrightness(hue);
 }
 
 void rainbowRotate() {
